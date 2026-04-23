@@ -94,7 +94,7 @@ function VeloraCityX:CreateWindow(config)
 	CloseBtn.Position = UDim2.new(1, -35, 0, 5)
 	CloseBtn.BackgroundTransparency = 1
 	CloseBtn.Text = "−"
-	CloseBtn.TextColor3 = WHITE
+	CloseBtn.TextColor3 = PURPLE
 	CloseBtn.Font = Enum.Font.GothamBold
 	CloseBtn.TextSize = 22
 	CloseBtn.ZIndex = 51
