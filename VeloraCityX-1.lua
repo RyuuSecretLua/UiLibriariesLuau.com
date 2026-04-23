@@ -16,8 +16,8 @@ local DARK = Color3.fromRGB(14, 10, 10)
 local DARK2 = Color3.fromRGB(20, 15, 15)
 local WHITE = Color3.fromRGB(255, 255, 255)
 local GRAY = Color3.fromRGB(160, 160, 160)
-local BG_IMAGE = "rbxassetid://135363635277420"
-local LOGO_DECAL = "rbxassetid://91867130314527"
+local BG_IMAGE = "rbxassetid://119246909187544"
+local LOGO_DECAL = "rbxassetid://134559131858394"
 
 function VeloraCityX:CreateWindow(config)
 	config = config or {}
