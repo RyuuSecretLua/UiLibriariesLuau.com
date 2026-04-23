@@ -83,7 +83,7 @@ function VeloraCityX:CreateWindow(config)
 	TitleLabel.Position = UDim2.new(0, 38, 0, 0)
 	TitleLabel.BackgroundTransparency = 1
 	TitleLabel.Text = title
-	TitleLabel.TextColor3 = WHITE
+	TitleLabel.TextColor3 = PURPLE
 	TitleLabel.Font = Enum.Font.GothamBold
 	TitleLabel.TextSize = 16
 	TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
