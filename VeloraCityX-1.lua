@@ -83,7 +83,7 @@ function VeloraCityX:CreateWindow(config)
 	TitleLabel.Position = UDim2.new(0, 38, 0, 0)
 	TitleLabel.BackgroundTransparency = 1
 	TitleLabel.Text = title
-	TitleLabel.TextColor3 = WHITE
+	TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 	TitleLabel.Font = Enum.Font.GothamBold
 	TitleLabel.TextSize = 16
 	TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -94,7 +94,7 @@ function VeloraCityX:CreateWindow(config)
 	CloseBtn.Position = UDim2.new(1, -35, 0, 5)
 	CloseBtn.BackgroundTransparency = 1
 	CloseBtn.Text = "−"
-	CloseBtn.TextColor3 = WHITE
+	CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 	CloseBtn.Font = Enum.Font.GothamBold
 	CloseBtn.TextSize = 22
 	CloseBtn.ZIndex = 51
