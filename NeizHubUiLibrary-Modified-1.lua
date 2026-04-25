@@ -17,7 +17,7 @@ local DARK2 = Color3.fromRGB(20, 15, 15)
 local WHITE = Color3.fromRGB(255, 255, 255)
 local GRAY = Color3.fromRGB(160, 160, 160)
 local BG_IMAGE = "rbxassetid://137184743125361"
-local LOGO_DECAL = "rbxassetid://134559131858394"
+local LOGO_DECAL = "rbxassetid://85998658788316"
 
 function NeizHubUiLibrary:CreateWindow(config)
 	config = config or {}
