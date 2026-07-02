@@ -10,8 +10,6 @@ Icons.SetIconsType("lucide")
 local RonemeUi = {}
 RonemeUi.__index = RonemeUi
 
-local RED = Color3.fromRGB(220, 50, 50)
-local RED_DIM = Color3.fromRGB(120, 20, 20)
 local DARK = Color3.fromRGB(14, 10, 10)
 local DARK2 = Color3.fromRGB(20, 15, 15)
 local WHITE = Color3.fromRGB(255, 255, 255)
@@ -28,6 +26,66 @@ local STROKE_CS = ColorSequence.new({
 	ColorSequenceKeypoint.new(0.75, Color3.fromRGB(147, 51, 234)),
 	ColorSequenceKeypoint.new(1,    Color3.fromRGB(20, 20, 22)),
 })
+
+local allGrads = {}
+local textGrads = {}
+
+local function animStroke(parent, thick)
+	local s = Instance.new("UIStroke")
+	s.Thickness = thick or 1
+	s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	s.Color = Color3.new(1,1,1)
+	s.Parent = parent
+	local g = Instance.new("UIGradient")
+	g.Color = STROKE_CS
+	g.Rotation = 45
+	g.Parent = s
+	table.insert(allGrads, g)
+	return s
+end
+
+local function attachGradientText(textLabel)
+	table.insert(textGrads, textLabel)
+end
+
+local gradIndex = 0
+task.spawn(function()
+	while true do
+		gradIndex = gradIndex + 3
+		for i = 1, #allGrads do
+			local grad = allGrads[i]
+			if grad and grad.Parent then
+				grad.Rotation = (gradIndex) % 360
+			end
+		end
+		
+		for i = 1, #textGrads do
+			local elem = textGrads[i]
+			if elem and elem.Parent then
+				local colors = {
+					Color3.fromRGB(255, 105, 180),
+					Color3.fromRGB(147, 51, 234),
+					Color3.fromRGB(255, 255, 255),
+					Color3.fromRGB(100, 180, 255),
+					Color3.fromRGB(147, 51, 234),
+				}
+				local idx = ((gradIndex // 2) % #colors) + 1
+				pcall(function()
+					if elem:IsA("TextLabel") or elem:IsA("TextButton") then
+						elem.TextColor3 = colors[idx]
+					elseif elem:IsA("Frame") then
+						elem.BackgroundColor3 = colors[idx]
+					elseif elem:IsA("ImageLabel") or elem:IsA("ImageButton") then
+						elem.ImageColor3 = colors[idx]
+					elseif elem:IsA("ScrollingFrame") then
+						elem.ScrollBarImageColor3 = colors[idx]
+					end
+				end)
+			end
+		end
+		task.wait(0.05)
+	end
+end)
 
 function RonemeUi:CreateWindow(config)
 	config = config or {}
@@ -55,15 +113,8 @@ function RonemeUi:CreateWindow(config)
 	Main.Size = UDim2.new(0, W, 0, H)
 	Main.ClipsDescendants = true
 
-	local mainStroke = Instance.new("UIStroke", Main)
-	mainStroke.Thickness = 2.5
+	local mainStroke = animStroke(Main, 2.5)
 	mainStroke.Transparency = 0.3
-	mainStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-	mainStroke.Color = Color3.new(1,1,1)
-	local mainGrad = Instance.new("UIGradient")
-	mainGrad.Color = STROKE_CS
-	mainGrad.Rotation = 45
-	mainGrad.Parent = mainStroke
 
 	local fullSize = Main.Size
 	local collapsedSize = UDim2.new(0, W, 0, 40)
@@ -103,21 +154,23 @@ function RonemeUi:CreateWindow(config)
 	TitleLabel.Position = UDim2.new(0, 46, 0, 0)
 	TitleLabel.BackgroundTransparency = 1
 	TitleLabel.Text = title
-	TitleLabel.TextColor3 = RED
+	TitleLabel.TextColor3 = Color3.fromRGB(255, 105, 180)
 	TitleLabel.Font = Enum.Font.GothamBold
 	TitleLabel.TextSize = 16
 	TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 	TitleLabel.ZIndex = 51
+	attachGradientText(TitleLabel)
 
 	local CloseBtn = Instance.new("TextButton", TopBar)
 	CloseBtn.Size = UDim2.new(0, 30, 0, 30)
 	CloseBtn.Position = UDim2.new(1, -35, 0, 5)
 	CloseBtn.BackgroundTransparency = 1
 	CloseBtn.Text = "−"
-	CloseBtn.TextColor3 = RED
+	CloseBtn.TextColor3 = Color3.fromRGB(255, 105, 180)
 	CloseBtn.Font = Enum.Font.GothamBold
 	CloseBtn.TextSize = 22
 	CloseBtn.ZIndex = 51
+	attachGradientText(CloseBtn)
 
 	local TabSidebar = Instance.new("Frame", Main)
 	TabSidebar.Name = "TabSidebar"
@@ -221,9 +274,10 @@ function RonemeUi:CreateWindow(config)
 		Instance.new("UICorner", TabBtn).CornerRadius = UDim.new(0, 8)
 
 		local tabStroke = Instance.new("UIStroke", TabBtn)
-		tabStroke.Color = RED
+		tabStroke.Color = ACCENT
 		tabStroke.Thickness = 1.5
 		tabStroke.Transparency = 0.7
+		table.insert(allGradients, tabStroke)
 
 		local TabInner = Instance.new("Frame", TabBtn)
 		TabInner.Size = UDim2.new(1, 0, 1, 0)
@@ -237,6 +291,7 @@ function RonemeUi:CreateWindow(config)
 		TabIconImg.Image = Icons.GetIcon(tabIcon)
 		TabIconImg.ImageColor3 = GRAY
 		TabIconImg.ZIndex = 13
+		table.insert(textGrads, TabIconImg)
 
 		local TabNameLabel = Instance.new("TextLabel", TabInner)
 		TabNameLabel.Size = UDim2.new(1, -32, 1, 0)
@@ -253,11 +308,12 @@ function RonemeUi:CreateWindow(config)
 		TabActiveLine.Size = UDim2.new(0, 3, 0.6, 0)
 		TabActiveLine.AnchorPoint = Vector2.new(0, 0.5)
 		TabActiveLine.Position = UDim2.new(0, 0, 0.5, 0)
-		TabActiveLine.BackgroundColor3 = RED
+		TabActiveLine.BackgroundColor3 = Color3.fromRGB(255, 105, 180)
 		TabActiveLine.BackgroundTransparency = 1
 		TabActiveLine.BorderSizePixel = 0
 		TabActiveLine.ZIndex = 12
 		Instance.new("UICorner", TabActiveLine).CornerRadius = UDim.new(1, 0)
+		table.insert(textGrads, TabActiveLine)
 
 		local TabWrapper = Instance.new("CanvasGroup", ContentArea)
 		TabWrapper.Name = "Wrap_" .. tabName
@@ -274,7 +330,8 @@ function RonemeUi:CreateWindow(config)
 		ScrollContainer.BackgroundTransparency = 1
 		ScrollContainer.BorderSizePixel = 0
 		ScrollContainer.ScrollBarThickness = 3
-		ScrollContainer.ScrollBarImageColor3 = RED
+		ScrollContainer.ScrollBarImageColor3 = Color3.fromRGB(255, 105, 180)
+		table.insert(textGrads, ScrollContainer)
 		ScrollContainer.AutomaticCanvasSize = Enum.AutomaticSize.Y
 		ScrollContainer.ZIndex = 6
 		ScrollContainer.Visible = true
@@ -305,7 +362,7 @@ function RonemeUi:CreateWindow(config)
 			TabWrapper.GroupTransparency = 1
 			TabWrapper.Visible = true
 			TweenService:Create(TabWrapper, TweenInfo.new(0.25, Enum.EasingStyle.Quad), {GroupTransparency = 0}):Play()
-			TweenService:Create(TabIconImg, TweenInfo.new(0.2), {ImageColor3 = RED}):Play()
+			TweenService:Create(TabIconImg, TweenInfo.new(0.2), {ImageColor3 = Color3.fromRGB(255, 105, 180)}):Play()
 			TweenService:Create(TabNameLabel, TweenInfo.new(0.2), {TextColor3 = WHITE}):Play()
 			TweenService:Create(TabBtn, TweenInfo.new(0.2), {BackgroundTransparency = 0.3}):Play()
 			TweenService:Create(TabActiveLine, TweenInfo.new(0.2), {BackgroundTransparency = 0}):Play()
@@ -328,10 +385,7 @@ function RonemeUi:CreateWindow(config)
 			row.ZIndex = 20
 			row.ClipsDescendants = false
 			Instance.new("UICorner", row).CornerRadius = UDim.new(0, 10)
-			local rowStroke = Instance.new("UIStroke", row)
-			rowStroke.Color = RED
-			rowStroke.Thickness = 1.8
-			rowStroke.Transparency = 0.6
+			animStroke(row, 1.8)
 			return row
 		end
 
@@ -341,11 +395,12 @@ function RonemeUi:CreateWindow(config)
 			lbl.Position = UDim2.new(0, 12, 0, 0)
 			lbl.BackgroundTransparency = 1
 			lbl.Text = text
-			lbl.TextColor3 = RED
+			lbl.TextColor3 = Color3.fromRGB(255, 105, 180)
 			lbl.Font = Enum.Font.GothamBold
 			lbl.TextSize = 13
 			lbl.TextXAlignment = Enum.TextXAlignment.Left
 			lbl.ZIndex = 21
+			attachGradientText(lbl)
 			return lbl
 		end
 
@@ -354,7 +409,7 @@ function RonemeUi:CreateWindow(config)
 			rip.Size = UDim2.new(0, 0, 0, 0)
 			rip.AnchorPoint = Vector2.new(0.5, 0.5)
 			rip.Position = UDim2.new(0.5, 0, 0.5, 0)
-			rip.BackgroundColor3 = RED
+			rip.BackgroundColor3 = Color3.fromRGB(255, 105, 180)
 			rip.BackgroundTransparency = 0.4
 			rip.BorderSizePixel = 0
 			rip.ZIndex = 25
@@ -382,16 +437,17 @@ function RonemeUi:CreateWindow(config)
 			secLabel.Position = UDim2.new(0, 12, 0, 0)
 			secLabel.BackgroundTransparency = 1
 			secLabel.Text = name
-			secLabel.TextColor3 = RED
+			secLabel.TextColor3 = Color3.fromRGB(255, 105, 180)
 			secLabel.Font = Enum.Font.GothamBold
 			secLabel.TextSize = 12
 			secLabel.TextXAlignment = Enum.TextXAlignment.Left
 			secLabel.ZIndex = 21
+			attachGradientText(secLabel)
 
 			local secLine = Instance.new("Frame", secRow)
 			secLine.Size = UDim2.new(1, -12, 0, 1)
 			secLine.Position = UDim2.new(0, 12, 1, -1)
-			secLine.BackgroundColor3 = RED
+			secLine.BackgroundColor3 = Color3.fromRGB(255, 105, 180)
 			secLine.BackgroundTransparency = 0.7
 			secLine.BorderSizePixel = 0
 			secLine.ZIndex = 21
@@ -407,11 +463,12 @@ function RonemeUi:CreateWindow(config)
 			btn.Size = UDim2.new(1, 0, 1, 0)
 			btn.BackgroundTransparency = 1
 			btn.Text = name
-			btn.TextColor3 = RED
+			btn.TextColor3 = Color3.fromRGB(255, 105, 180)
 			btn.Font = Enum.Font.GothamBold
 			btn.TextSize = 13
 			btn.TextXAlignment = Enum.TextXAlignment.Center
 			btn.ZIndex = 22
+			attachGradientText(btn)
 			btn.MouseButton1Click:Connect(function()
 				ripple(row)
 				callback()
@@ -436,10 +493,7 @@ function RonemeUi:CreateWindow(config)
 			toggleTrack.ZIndex = 21
 			Instance.new("UICorner", toggleTrack).CornerRadius = UDim.new(1, 0)
 
-			local trackStroke = Instance.new("UIStroke", toggleTrack)
-			trackStroke.Color = RED
-			trackStroke.Thickness = 1.5
-			trackStroke.Transparency = 0.5
+			animStroke(toggleTrack, 1.5)
 
 			local knob = Instance.new("Frame", toggleTrack)
 			knob.Size = UDim2.new(0, 18, 0, 18)
@@ -451,8 +505,8 @@ function RonemeUi:CreateWindow(config)
 
 			local function updateVisual(s)
 				if s then
-					TweenService:Create(toggleTrack, TweenInfo.new(0.2), {BackgroundColor3 = RED_DIM}):Play()
-					TweenService:Create(knob, TweenInfo.new(0.2), {Position = UDim2.new(0, 21, 0.5, -9), BackgroundColor3 = RED}):Play()
+					TweenService:Create(toggleTrack, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(147, 51, 234)}):Play()
+					TweenService:Create(knob, TweenInfo.new(0.2), {Position = UDim2.new(0, 21, 0.5, -9), BackgroundColor3 = Color3.fromRGB(255, 105, 180)}):Play()
 				else
 					TweenService:Create(toggleTrack, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(55, 20, 20)}):Play()
 					TweenService:Create(knob, TweenInfo.new(0.2), {Position = UDim2.new(0, 3, 0.5, -9), BackgroundColor3 = WHITE}):Play()
@@ -490,10 +544,7 @@ function RonemeUi:CreateWindow(config)
 			inputBg.ZIndex = 21
 			Instance.new("UICorner", inputBg).CornerRadius = UDim.new(0, 8)
 
-			local inputStroke = Instance.new("UIStroke", inputBg)
-			inputStroke.Color = RED
-			inputStroke.Thickness = 1.5
-			inputStroke.Transparency = 0.5
+			local inputStroke = animStroke(inputBg, 1.5)
 
 			local textBox = Instance.new("TextBox", inputBg)
 			textBox.Size = UDim2.new(1, -10, 1, 0)
@@ -536,15 +587,12 @@ function RonemeUi:CreateWindow(config)
 			sliderBox.ClipsDescendants = true
 			Instance.new("UICorner", sliderBox).CornerRadius = UDim.new(0, 6)
 
-			local sliderStroke = Instance.new("UIStroke", sliderBox)
-			sliderStroke.Color = RED
-			sliderStroke.Thickness = 1.5
-			sliderStroke.Transparency = 0.3
+			animStroke(sliderBox, 1.5)
 
 			local fillBar = Instance.new("Frame", sliderBox)
 			fillBar.Size = UDim2.new((value - min) / (max - min), 0, 1, 0)
 			fillBar.Position = UDim2.new(0, 0, 0, 0)
-			fillBar.BackgroundColor3 = RED
+			fillBar.BackgroundColor3 = Color3.fromRGB(255, 105, 180)
 			fillBar.BackgroundTransparency = 0.3
 			fillBar.BorderSizePixel = 0
 			fillBar.ZIndex = 22
@@ -619,31 +667,30 @@ function RonemeUi:CreateWindow(config)
 			dropBox.ZIndex = 21
 			Instance.new("UICorner", dropBox).CornerRadius = UDim.new(0, 8)
 
-			local dropStroke = Instance.new("UIStroke", dropBox)
-			dropStroke.Color = RED
-			dropStroke.Thickness = 1.5
-			dropStroke.Transparency = 0.5
+			animStroke(dropBox, 1.5)
 
 			local selLabel = Instance.new("TextLabel", dropBox)
 			selLabel.Size = UDim2.new(1, -22, 1, 0)
 			selLabel.Position = UDim2.new(0, 7, 0, 0)
 			selLabel.BackgroundTransparency = 1
 			selLabel.Text = selected
-			selLabel.TextColor3 = RED
+			selLabel.TextColor3 = Color3.fromRGB(255, 105, 180)
 			selLabel.Font = Enum.Font.GothamBold
 			selLabel.TextSize = 12
 			selLabel.TextXAlignment = Enum.TextXAlignment.Left
 			selLabel.ZIndex = 22
+			attachGradientText(selLabel)
 
 			local arrow = Instance.new("TextLabel", dropBox)
 			arrow.Size = UDim2.new(0, 16, 1, 0)
 			arrow.Position = UDim2.new(1, -18, 0, 0)
 			arrow.BackgroundTransparency = 1
 			arrow.Text = "v"
-			arrow.TextColor3 = RED
+			arrow.TextColor3 = Color3.fromRGB(255, 105, 180)
 			arrow.Font = Enum.Font.GothamBold
 			arrow.TextSize = 11
 			arrow.ZIndex = 22
+			attachGradientText(arrow)
 
 			local optionHeight = 28
 			local totalHeight = #options * (optionHeight + 2) + 8
@@ -658,10 +705,7 @@ function RonemeUi:CreateWindow(config)
 			dropList.ClipsDescendants = true
 			Instance.new("UICorner", dropList).CornerRadius = UDim.new(0, 8)
 
-			local dropListStroke = Instance.new("UIStroke", dropList)
-			dropListStroke.Color = RED
-			dropListStroke.Thickness = 1.5
-			dropListStroke.Transparency = 0.4
+			animStroke(dropList, 1.5)
 
 			local dlList = Instance.new("UIListLayout", dropList)
 			dlList.SortOrder = Enum.SortOrder.LayoutOrder
@@ -679,18 +723,19 @@ function RonemeUi:CreateWindow(config)
 				optBtn.BackgroundColor3 = Color3.fromRGB(35, 10, 10)
 				optBtn.BackgroundTransparency = 0.4
 				optBtn.Text = opt
-				optBtn.TextColor3 = RED
+				optBtn.TextColor3 = Color3.fromRGB(255, 105, 180)
 				optBtn.Font = Enum.Font.GothamBold
 				optBtn.TextSize = 12
 				optBtn.ZIndex = 201
 				optBtn.LayoutOrder = idx
 				Instance.new("UICorner", optBtn).CornerRadius = UDim.new(0, 5)
+				attachGradientText(optBtn)
 
 				optBtn.MouseEnter:Connect(function()
 					TweenService:Create(optBtn, TweenInfo.new(0.1), {BackgroundTransparency = 0.1, TextColor3 = WHITE}):Play()
 				end)
 				optBtn.MouseLeave:Connect(function()
-					TweenService:Create(optBtn, TweenInfo.new(0.1), {BackgroundTransparency = 0.4, TextColor3 = RED}):Play()
+					TweenService:Create(optBtn, TweenInfo.new(0.1), {BackgroundTransparency = 0.4}):Play()
 				end)
 				optBtn.MouseButton1Click:Connect(function()
 					selected = opt
@@ -754,7 +799,7 @@ function RonemeUi:CreateWindow(config)
 			local iconVal    = cfg.Icon or ""
 			local titleText  = cfg.Title or "Notify"
 			local bodyText   = cfg.Text or ""
-			local barColor   = RED
+			local barColor   = ACCENT
 			local startDelay = cfg.StartedNotify or 0
 			local duration   = cfg.EndedNotify or 4
 
